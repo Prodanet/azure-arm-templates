@@ -38,7 +38,7 @@
         {
             "type": "Microsoft.Cdn/profiles/afdendpoints",
             "apiVersion": "2025-04-15",
-            "name": "[concat(variables('frontDoorName'), '/', variables('frontDoorName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
