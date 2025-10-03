@@ -28,7 +28,8 @@
         "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
         "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
-        "routeName": "[replace(parameters('frontDoorName'), '-', '')]"
+        "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
+        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]"
     },
     "resources": [
         {
@@ -96,7 +97,7 @@
             "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('cdnCustomDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables'customDomainName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
