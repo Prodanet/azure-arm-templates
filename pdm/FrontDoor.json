@@ -127,7 +127,8 @@
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]",
                 "[variables('resourceGroupName')]"
-            ],"properties": {
+            ],
+            "properties": {
                 "cacheConfiguration": {
                     "compressionSettings": {
                         "isCompressionEnabled": true,
