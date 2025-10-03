@@ -19,12 +19,13 @@
         "endpointHostName": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginHeaderUrl": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
-        "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]"
+        "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
+        "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]"
     },
     "resources": [
         {
             "type": "Microsoft.Cdn/profiles",
-            "apiVersion": "2025-04-15",
+            "apiVersion": "2021-06-01",
             "name": "[parameters('frontDoorName')]",
             "location": "Global",
             "sku": {
@@ -36,8 +37,8 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/afdendpoints",
-            "apiVersion": "2025-04-15",
+            "type": "Microsoft.Cdn/profiles/afdEndpoints",
+            "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "location": "Global",
             "dependsOn": [
@@ -48,28 +49,10 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/customdomains",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
-            ],
-            "properties": {
-                "tlsSettings": {
-                    "certificateType": "ManagedCertificate",
-                    "minimumTlsVersion": "TLS12",
-                    "cipherSuiteSetType": "TLS12_2022"
-                },
-                "extendedProperties": {
-                    "IsInternal": "true",
-                    "RoutesList": "[variables('routeList')]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Cdn/profiles/origingroups",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
+            "type": "Microsoft.Cdn/profiles/originGroups",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupName'))]",
+            "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
@@ -82,26 +65,12 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/origingroups",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '-Default')]",
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupName'), '/', variables('endpointOriginName'))]",
+            "location": "Global",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
-            ],
-            "properties": {
-                "loadBalancingSettings": {
-                    "sampleSize": 4,
-                    "successfulSamplesRequired": 2,
-                    "additionalLatencyInMilliseconds": 0
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Cdn/profiles/origingroups/origins",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), variables('endpointOriginName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
@@ -116,14 +85,14 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/afdendpoints/routes",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/azbetacdnpdmgeneric')]",
+            "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/default-route')]",
+            "location": "Global",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/afdendpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName')))]",
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]"
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
             ],
             "properties": {
                 "cacheConfiguration": {
@@ -175,13 +144,8 @@
                     },
                     "queryStringCachingBehavior": "UseQueryString"
                 },
-                "customDomains": [
-                    {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName')))]"
-                    }
-                ],
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [
@@ -196,7 +160,7 @@
                 "httpsRedirect": "Disabled",
                 "enabledState": "Enabled"
             }
-        }       
+        }
     ],
     "outputs": {
         "frontDoorId": {
