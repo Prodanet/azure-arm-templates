@@ -14,7 +14,7 @@
                 "description": "Name of the storage account."
             }
         },
-        "customDomainName": {
+        "cdnCustomDomainName": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
@@ -93,15 +93,15 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('customDomainName'), ''))]",
+            "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('customDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('cdnCustomDomainName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "hostName": "[parameters('customDomainName')]",
+                "hostName": "[parameters('cdnCustomDomainName')]",
                 "tlsSettings": {
                     "certificateType": "ManagedCertificate",
                     "minimumTlsVersion": "TLS12",
