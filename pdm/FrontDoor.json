@@ -28,8 +28,7 @@
         "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
         "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
-        "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
-        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]"
+        "routeName": "[replace(parameters('frontDoorName'), '-', '')]"
     },
     "resources": [
         {
@@ -91,27 +90,6 @@
                 "weight": 1000,
                 "enabledState": "Enabled",
                 "enforceCertificateNameCheck": false
-            }
-        },
-        {
-            "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
-            "type": "Microsoft.Cdn/profiles/customdomains",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
-            ],
-            "properties": {
-                "hostName": "[parameters('cdnCustomDomainName')]",
-                "tlsSettings": {
-                    "certificateType": "ManagedCertificate",
-                    "minimumTlsVersion": "TLS12",
-                    "cipherSuiteSetType": "TLS12_2022"
-                },
-                "extendedProperties": {
-                    "IsInternal": "true",
-                    "RoutesList": "[variables('routeList')]"
-                }
             }
         },
         {
@@ -195,9 +173,9 @@
         },
         {
             "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
-            "type": "Microsoft.Cdn/profiles/customdomains",
+            "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
+            "name": "[concat(parameters('frontDoorName'), '-CustomDomain)]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
@@ -219,7 +197,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '/', parameters('frontDoorName')))]",
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-CustomDomain'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]"
             ],
@@ -275,7 +253,7 @@
                 },
                 "customDomains": [
                     {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '/', variables('customDomainName')))]"
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-CustomDomain')))]"
                     }
                 ],
                 "originGroup": {
