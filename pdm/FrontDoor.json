@@ -2,13 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "paramFrontDoorName": {
+        "frontDoorName": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Front Door instance."
             }
         },
-        "paramStorageAccountName": {
+        "storageAccountName": {
             "type": "string",
             "metadata": {
                 "description": "Name of the storage account."
@@ -16,16 +16,16 @@
         }
     },
     "variables": {
-        "endpointHostName": "[concat(parameters('paramStorageAccountName'), '.blob.core.windows.net')]",
-        "endpointOriginHeaderUrl": "[concat(parameters('paramStorageAccountName'), '.blob.core.windows.net')]",
-        "endpointOriginName": "[concat(parameters('paramStorageAccountName'), '-blob-core-windows-net')]",
-        "routeList": "[concat('[[\"', parameters('paramStorageAccountName'), '\"]]')]"
+        "endpointHostName": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
+        "endpointOriginHeaderUrl": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
+        "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
+        "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]"
     },
     "resources": [
         {
             "type": "Microsoft.Cdn/profiles",
             "apiVersion": "2025-04-15",
-            "name": "[parameters('paramFrontDoorName')]",
+            "name": "[parameters('frontDoorName')]",
             "location": "Global",
             "sku": {
                 "name": "Standard_AzureFrontDoor"
@@ -38,10 +38,10 @@
         {
             "type": "Microsoft.Cdn/profiles/afdendpoints",
             "apiVersion": "2025-04-15",
-            "name": "[concat(variables('paramFrontDoorName'), '/', variables('paramFrontDoorName'))]",
+            "name": "[concat(variables('frontDoorName'), '/', variables('frontDoorName'))]",
             "location": "Global",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "enabledState": "Enabled"
@@ -50,9 +50,9 @@
         {
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('paramFrontDoorName'), '/', parameters('paramFrontDoorName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "tlsSettings": {
@@ -69,9 +69,9 @@
         {
             "type": "Microsoft.Cdn/profiles/origingroups",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('paramFrontDoorName'), '/', parameters('paramFrontDoorName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "loadBalancingSettings": {
@@ -84,9 +84,9 @@
         {
             "type": "Microsoft.Cdn/profiles/origingroups",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('paramFrontDoorName'), '/', parameters('paramFrontDoorName'), '-Default')]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '-Default')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "loadBalancingSettings": {
@@ -99,10 +99,10 @@
         {
             "type": "Microsoft.Cdn/profiles/origingroups/origins",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('paramFrontDoorName'), '/', parameters('paramFrontDoorName'), variables('endpointOriginName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), variables('endpointOriginName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('paramFrontDoorName'), concat(parameters('paramFrontDoorName'), '-Default'))]",
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "hostName": "[variables('endpointHostName')]",
@@ -118,12 +118,12 @@
         {
             "type": "Microsoft.Cdn/profiles/afdendpoints/routes",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('paramFrontDoorName'), '/', parameters('paramFrontDoorName'), '/azbetacdnpdmgeneric')]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/azbetacdnpdmgeneric')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/afdendpoints', parameters('paramFrontDoorName'), parameters('paramFrontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('paramFrontDoorName'), concat(parameters('paramFrontDoorName')))]",
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('paramFrontDoorName'), concat(parameters('paramFrontDoorName'), '-Default'))]"
+                "[resourceId('Microsoft.Cdn/profiles/afdendpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName')))]",
+                "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]"
             ],
             "properties": {
                 "cacheConfiguration": {
@@ -177,11 +177,11 @@
                 },
                 "customDomains": [
                     {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('paramFrontDoorName'), concat(parameters('paramFrontDoorName')))]"
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName')))]"
                     }
                 ],
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('paramFrontDoorName'), concat(parameters('paramFrontDoorName'), '-Default'))]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/origingroups', parameters('frontDoorName'), concat(parameters('frontDoorName'), '-Default'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [
@@ -201,7 +201,7 @@
     "outputs": {
         "frontDoorId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Cdn/profiles', parameters('paramFrontDoorName'))]"
+            "value": "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
         }
     }
 }
