@@ -29,9 +29,7 @@
         "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
         "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
-        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
-        "resourceGroupName": "[resourceGroup().name]",
-        "subscriptionId": "[subscription().subscriptionId]"
+        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]"
     },
     "resources": [
         {
@@ -126,8 +124,7 @@
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]",
-                "[variables('resourceGroupName')]"
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]"
             ],
             "properties": {
                 "cacheConfiguration": {
