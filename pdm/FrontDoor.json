@@ -254,7 +254,7 @@
                 },
                 "customDomains": [
                     {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), concat(variables('customDomainName'), '-CustomDomain')))]"
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), concat(variables('customDomainName'), '-CustomDomain'))]"
                     }
                 ],
                 "originGroup": {
