@@ -101,7 +101,7 @@
                 },
                 "extendedProperties": {
                     "IsInternal": "true",
-                    "RoutesList": "[[\"azbetacdnpdmgeneric\"]"
+                    "RoutesList": "[variables('routeList')]"
                 }
             }
         }
