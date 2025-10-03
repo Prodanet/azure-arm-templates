@@ -189,7 +189,7 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
+            "condition": false,
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeName'))]",
