@@ -30,7 +30,8 @@
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
         "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
         "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
-        "resourceGroupName": "[resourceGroup().name]"
+        "resourceGroupName": "[resourceGroup().name]",
+        "subscriptionId": "[subscription().subscriptionId]"
     },
     "resources": [
         {
@@ -199,7 +200,7 @@
             "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
@@ -221,7 +222,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '/', variables('customDomainName')))]",
+                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), concat(parameters('frontDoorName'), '/', parameters('frontDoorName')))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]",
                 "[variables('resourceGroupName')]"
