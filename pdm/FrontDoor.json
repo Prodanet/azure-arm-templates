@@ -168,11 +168,6 @@
                     },
                     "queryStringCachingBehavior": "UseQueryString"
                 },
-                "customDomains": [
-                    {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), parameters('frontDoorName'))]"
-                    }
-                ],
                 "originGroup": {
                     "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
                 },
