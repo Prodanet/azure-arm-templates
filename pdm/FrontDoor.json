@@ -19,7 +19,7 @@
         "endpointHostName": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginHeaderUrl": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
-        "customDomainName": "[concat(parameters('frontDoorName'), '.azureedge.net')]",
+        "customDomainName": "[concat(parameters('frontDoorName'), '.azurefd.net')]",
         "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]"
     },
