@@ -101,7 +101,7 @@
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "hostName": "[parametersustomDomainName')]",
+                "hostName": "[parameters('customDomainName')]",
                 "tlsSettings": {
                     "certificateType": "ManagedCertificate",
                     "minimumTlsVersion": "TLS12",
