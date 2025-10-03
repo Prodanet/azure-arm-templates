@@ -97,7 +97,7 @@
             "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', variables'customDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
