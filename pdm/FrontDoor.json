@@ -88,7 +88,7 @@
         {
             "type": "Microsoft.Cdn/profiles/customdomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '-Migrated')]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
