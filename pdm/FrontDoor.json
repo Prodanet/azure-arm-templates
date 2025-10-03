@@ -86,26 +86,26 @@
                 "enforceCertificateNameCheck": false
             }
         },
-        {
-            "type": "Microsoft.Cdn/profiles/customdomains",
-            "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
-            ],
-            "properties": {
-                "hostName": "[variables('customDomainName')]",
-                "tlsSettings": {
-                    "certificateType": "ManagedCertificate",
-                    "minimumTlsVersion": "TLS12",
-                    "cipherSuiteSetType": "TLS12_2022"
-                },
-                "extendedProperties": {
-                    "IsInternal": "true",
-                    "RoutesList": "[variables('routeList')]"
-                }
-            }
-        },
+        // {
+        //     "type": "Microsoft.Cdn/profiles/customdomains",
+        //     "apiVersion": "2025-04-15",
+        //     "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
+        //     "dependsOn": [
+        //         "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+        //     ],
+        //     "properties": {
+        //         "hostName": "[variables('customDomainName')]",
+        //         "tlsSettings": {
+        //             "certificateType": "ManagedCertificate",
+        //             "minimumTlsVersion": "TLS12",
+        //             "cipherSuiteSetType": "TLS12_2022"
+        //         },
+        //         "extendedProperties": {
+        //             "IsInternal": "true",
+        //             "RoutesList": "[variables('routeList')]"
+        //         }
+        //     }
+        // },
         {
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
@@ -114,7 +114,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), parameters('frontDoorName'))]",
+                // "[resourceId('Microsoft.Cdn/profiles/customdomains', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]"
             ],
