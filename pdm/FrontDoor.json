@@ -224,7 +224,6 @@
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
             ],
             "properties": {
