@@ -35,13 +35,6 @@
                 "description": "Name of the Key Vault where the certificate is stored."
             }
         },
-        "certificateSecret": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the secret of the certificate in Key Vault."
-            }
-        },
         "certificateName": {
             "type": "string",
             "defaultValue": "",
@@ -76,7 +69,7 @@
             }
         },
         {
-            "condition": "[and(not(equals(parameters('certificateName'), '')), not(equals(parameters('certificateSecret'), '')))]",
+            "condition": "[not(equals(parameters('certificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/secrets",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customCertificateName'))]",
@@ -89,7 +82,6 @@
                     "secretSource": {
                         "id": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', parameters('sharedResourceGroupName'), '/providers/Microsoft.KeyVault/vaults/', parameters('sharedKeyVaultName'), '/secrets/', parameters('certificateName'))]"
                     },
-                    "secretVersion": "[parameters('certificateSecret')]",
                     "useLatestVersion": true,
                     "subjectAlternativeNames": [
                         "*.prodanet.com",
