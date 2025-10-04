@@ -20,16 +20,46 @@
             "metadata": {
                 "description": "Custom domain name for the Front Door endpoint. Leave empty to use the default azurefd.net domain."
             }
+        },
+        "sharedResourceGroupName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the resource group where the key vault is located."
+            }
+        },
+        "sharedKeyVaultName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the Key Vault where the certificate is stored."
+            }
+        },
+        "certificateSecret": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the secret of the certificate in Key Vault."
+            }
+        },
+        "certificateName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the certificate in Key Vault for the custom domain. Leave empty to use a managed certificate."
+            }
         }
     },
     "variables": {
+        "subscriptionId": "[subscription().subscriptionId]",
         "endpointHostName": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginHeaderUrl": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
         "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
         "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
         "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
-        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]"
+        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
+        "customCertificateName": "[if(not(equals(parameters('certificateName'), '')), concat(parameters('sharedKeyVaultName'), parameters('certificateName'), '-latest'), '')]"
     },
     "resources": [
         {
@@ -43,6 +73,29 @@
             "kind": "frontdoor",
             "properties": {
                 "originResponseTimeoutSeconds": 30
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('certificateName'), '')), not(equals(parameters('certificateSecret'), '')))]",
+            "type": "Microsoft.Cdn/profiles/secrets",
+            "apiVersion": "2025-04-15",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customCertificateName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "parameters": {
+                    "type": "CustomerCertificate",
+                    "secretSource": {
+                        "id": "[resourceId(variables('subscriptionId'), parameters('sharedResourceGroupName'), 'Microsoft.KeyVault/vaults', parameters('sharedKeyVaultName'), concat('/secrets/', parameters('certificateName')))]"
+                    },
+                    "secretVersion": "[parameters('certificateSecret')]",
+                    "useLatestVersion": true,
+                    "subjectAlternativeNames": [
+                        "*.prodanet.com",
+                        "prodanet.com"
+                    ]
+                }
             }
         },
         {
@@ -173,7 +226,29 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('certificateName'), '')))]",
+            "type": "Microsoft.Cdn/profiles/customDomains",
+            "apiVersion": "2025-04-15",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
+            ],
+            "properties": {
+                "hostName": "[parameters('cdnCustomDomainName')]",
+                "tlsSettings": {
+                    "certificateType": "CustomerCertificate",
+                    "minimumTlsVersion": "TLS12",
+                    "cipherSuiteSetType": "TLS12_2022",
+                    "secret": {
+                        "id": "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('certificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
