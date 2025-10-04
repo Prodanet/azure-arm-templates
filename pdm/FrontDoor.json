@@ -52,7 +52,7 @@
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
         "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
         "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
-        "customCertificateName": "[if(not(equals(parameters('certificateName'), '')), concat(parameters('sharedKeyVaultName'), parameters('certificateName'), '-latest'), '')]"
+        "customCertificateName": "[if(not(equals(parameters('certificateName'), '')), concat(parameters('sharedKeyVaultName'), '-', parameters('certificateName'), '-latest'), '')]"
     },
     "resources": [
         {
