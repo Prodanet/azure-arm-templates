@@ -87,7 +87,7 @@
                 "parameters": {
                     "type": "CustomerCertificate",
                     "secretSource": {
-                        "id": "[resourceId(variables('subscriptionId'), parameters('sharedResourceGroupName'), 'Microsoft.KeyVault/vaults', concat(parameters('sharedKeyVaultName'), '/secrets/', parameters('certificateName')))]"
+                        "id": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', parameters('sharedResourceGroupName'), '/providers/Microsoft.KeyVault/vaults/', parameters('sharedKeyVaultName'), '/secrets/', parameters('certificateName'))]"
                     },
                     "secretVersion": "[parameters('certificateSecret')]",
                     "useLatestVersion": true,
