@@ -21,21 +21,21 @@
                 "description": "Custom domain name for the Front Door endpoint. Leave empty to use the default azurefd.net domain."
             }
         },
-        "sharedResourceGroupName": {
+        "SharedKeyVaultResourceGroupName": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Name of the resource group where the key vault is located."
             }
         },
-        "sharedKeyVaultName": {
+        "SharedKeyVaultName": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Name of the Key Vault where the certificate is stored."
             }
         },
-        "certificateName": {
+        "SharedKeyVaultCertificateName": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
@@ -52,7 +52,7 @@
         "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
         "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
         "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
-        "customCertificateName": "[if(not(equals(parameters('certificateName'), '')), concat(parameters('sharedKeyVaultName'), '-', parameters('certificateName'), '-latest'), '')]"
+        "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]"
     },
     "resources": [
         {
@@ -69,7 +69,7 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('certificateName'), ''))]",
+            "condition": "[not(equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/secrets",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customCertificateName'))]",
@@ -80,7 +80,7 @@
                 "parameters": {
                     "type": "CustomerCertificate",
                     "secretSource": {
-                        "id": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', parameters('sharedResourceGroupName'), '/providers/Microsoft.KeyVault/vaults/', parameters('sharedKeyVaultName'), '/secrets/', parameters('certificateName'))]"
+                        "id": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', parameters('SharedKeyVaultResourceGroupName'), '/providers/Microsoft.KeyVault/vaults/', parameters('SharedKeyVaultName'), '/secrets/', parameters('SharedKeyVaultCertificateName'))]"
                     },
                     "useLatestVersion": true,
                     "subjectAlternativeNames": [
@@ -218,7 +218,7 @@
             }
         },
         {
-            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('certificateName'), '')))]",
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
@@ -239,7 +239,7 @@
             }
         },
         {
-            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('certificateName'), ''))]",
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
