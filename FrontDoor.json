@@ -132,7 +132,7 @@
         {
             "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('originGroupNameBlob'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameBlob'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
@@ -149,7 +149,7 @@
             "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('originGroupNameApp'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
