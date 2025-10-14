@@ -21,6 +21,20 @@
                 "description": "Custom domain name for the Front Door endpoint. Leave empty to use the default azurefd.net domain."
             }
         },
+        "appCustomDomainName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Custom domain name for the backend application. Leave empty if not using a custom domain."
+            }
+        },
+        "publicIPAddressName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The name of the public IP resource in Azure."
+            }
+        },
         "SharedKeyVaultResourceGroupName": {
             "type": "string",
             "defaultValue": "",
@@ -45,14 +59,17 @@
     },
     "variables": {
         "subscriptionId": "[subscription().subscriptionId]",
-        "endpointHostName": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
-        "endpointOriginHeaderUrl": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
-        "endpointOriginName": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
-        "routeList": "[concat('[[\"', parameters('storageAccountName'), '\"]]')]",
-        "originGroupName": "[concat(parameters('frontDoorName'), '-Default')]",
-        "routeName": "[replace(parameters('frontDoorName'), '-', '')]",
-        "customDomainName": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
-        "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]"
+        "endpointHostNameBlob": "[concat(parameters('storageAccountName'), '.blob.core.windows.net')]",
+        "endpointOriginNameBlob": "[concat(parameters('storageAccountName'), '-blob-core-windows-net')]",
+        "originGroupNameBlob": "[concat(parameters('frontDoorName'), '-Default')]",
+        "originGroupNameApp": "[concat(parameters('frontDoorName'), '-app')]",
+        "routeNameBlob": "[replace(parameters('frontDoorName'), '-', '')]",
+        "routeNameApp": "[concat(variables('routeNameBlob'), 'app')]",
+        "customDomainNameBlob": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
+        "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
+        "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
+        "hostDomainFQDN": "[if(not(equals(parameters('PublicIP'), '')), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName')), '2022-11-01').dnsSettings.fqdn, '')]",
+        "hostDomain": "[if(not(equals(parameters('PublicIP'), '')), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName')), '2022-11-01').dnsSettings.domainNameLabel, '')]"
     },
     "resources": [
         {
@@ -103,9 +120,21 @@
             }
         },
         {
+            "type": "Microsoft.Cdn/profiles/afdEndpoints",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '-app')]",
+            "location": "Global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "enabledState": "Enabled"
+            }
+        },
+        {
             "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('originGroupNameBlob'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
@@ -119,19 +148,58 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
+            "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupName'), '/', variables('endpointOriginName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('originGroupNameApp'))]",
             "location": "Global",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "hostName": "[variables('endpointHostName')]",
+                "loadBalancingSettings": {
+                    "sampleSize": 4,
+                    "successfulSamplesRequired": 3,
+                    "additionalLatencyInMilliseconds": 50
+                },
+                "sessionAffinityState": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameBlob'), '/', variables('endpointOriginNameBlob'))]",
+            "location": "Global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameBlob'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "hostName": "[variables('endpointHostNameBlob')]",
                 "httpPort": 80,
                 "httpsPort": 443,
-                "originHostHeader": "[variables('endpointHostName')]",
+                "originHostHeader": "[variables('endpointHostNameBlob')]",
+                "priority": 1,
+                "weight": 1000,
+                "enabledState": "Enabled",
+                "enforceCertificateNameCheck": false
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', variables('hostDomain'))]",
+            "location": "Global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "hostName": "[variables('hostDomainFQDN')]",
+                "httpPort": 80,
+                "httpsPort": 443,
+                "originHostHeader": "[variables('appCustomDomainName')]",
                 "priority": 1,
                 "weight": 1000,
                 "enabledState": "Enabled",
@@ -142,17 +210,17 @@
             "condition": "[equals(parameters('cdnCustomDomainName'), '')]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeNameBlob'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]"
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameBlob'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupNameBlob'), variables('endpointOriginNameBlob'))]"
             ],
             "properties": {
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameBlob'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [
@@ -172,7 +240,7 @@
             "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameBlob'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
@@ -193,7 +261,7 @@
             "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameBlob'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
@@ -207,26 +275,100 @@
             }
         },
         {
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
+            "type": "Microsoft.Cdn/profiles/customDomains",
+            "apiVersion": "2025-04-15",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameApp'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
+            ],
+            "properties": {
+                "hostName": "[parameters('appCustomDomainName')]",
+                "tlsSettings": {
+                    "certificateType": "CustomerCertificate",
+                    "minimumTlsVersion": "TLS12",
+                    "cipherSuiteSetType": "TLS12_2022",
+                    "secret": {
+                        "id": "[resourceId('Microsoft.Cdn/profiles/secrets', parameters('frontDoorName'), variables('customCertificateName'))]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
+            "type": "Microsoft.Cdn/profiles/customDomains",
+            "apiVersion": "2025-04-15",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameApp'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "hostName": "[parameters('appCustomDomainName')]",
+                "tlsSettings": {
+                    "certificateType": "ManagedCertificate",
+                    "minimumTlsVersion": "TLS12",
+                    "cipherSuiteSetType": "TLS12_2022"
+                }
+            }
+        },
+        {
             "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeName'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeNameBlob'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('endpointOriginName'))]"
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameBlob'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameBlob'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupNameBlob'), variables('endpointOriginNameBlob'))]"
             ],
             "properties": {
                 "customDomains": [
                     {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainName'))]"
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameBlob'))]"
                     }
                 ],
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameBlob'))]"
+                },
+                "ruleSets": [],
+                "supportedProtocols": [
+                    "Http",
+                    "Https"
+                ],
+                "patternsToMatch": [
+                    "/*"
+                ],
+                "forwardingProtocol": "MatchRequest",
+                "linkToDefaultDomain": "Enabled",
+                "httpsRedirect": "Disabled",
+                "enabledState": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
+            "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeNameApp'))]",
+            "location": "Global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupNameApp'), variables('endpointOriginNameApp'))]"
+            ],
+            "properties": {
+                "customDomains": [
+                    {
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]"
+                    }
+                ],
+                "originGroup": {
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [
