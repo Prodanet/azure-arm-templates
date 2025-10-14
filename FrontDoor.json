@@ -67,9 +67,7 @@
         "routeNameApp": "[concat(variables('routeNameBlob'), 'app')]",
         "customDomainNameBlob": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
-        "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
-        "hostDomainFQDN": "[if(not(equals(parameters('publicIPAddressName'), '')), reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.fqdn, '')]",
-        "hostDomain": "[if(not(equals(parameters('publicIPAddressName'), '')), reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.domainNameLabel, '')]"
+        "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]"
     },
     "resources": [
         {
@@ -186,17 +184,17 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), not(equals(parameters('publicIPAddressName'), '')))]",
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', variables('hostDomain'))]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.domainNameLabel)]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "hostName": "[variables('hostDomainFQDN')]",
+                "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.fqdn]",
                 "httpPort": 80,
                 "httpsPort": 443,
                 "originHostHeader": "[variables('appCustomDomainName')]",
