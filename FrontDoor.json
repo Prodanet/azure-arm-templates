@@ -72,7 +72,7 @@
         "originGroupNameApp": "[concat(parameters('frontDoorName'), '-app')]",
         "routeNameBlob": "[replace(parameters('frontDoorName'), '-', '')]",
         "routeNameApp": "[concat(variables('routeNameBlob'), 'app')]",
-        "customDomainNameBlob": "[replace(parameters('cdnCustomDomainName'), '.', '-')]",
+        "customDomainNameBlob": "[replace(parameters('cdnCustomDomainName'), '.', '-')]", 
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]"
     },
