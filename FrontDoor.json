@@ -204,7 +204,7 @@
                 "hostName": "[parameters('appHostNameFQDN')]",
                 "httpPort": 80,
                 "httpsPort": 443,
-                "originHostHeader": "[variables('appCustomDomainName')]",
+                "originHostHeader": "[parameters('appCustomDomainName')]",
                 "priority": 1,
                 "weight": 1000,
                 "enabledState": "Enabled",
