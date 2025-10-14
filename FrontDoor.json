@@ -173,11 +173,12 @@
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "wafPolicy": {
-                    "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]"
-                },
-                "type": "WebApplicationFirewall",
-                "associations": [
+                "parameters": {
+                    "wafPolicy": {
+                        "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]"
+                    },
+                    "type": "WebApplicationFirewall",
+                    "associations": [
                         {
                             "domains": [
                                 {
@@ -192,6 +193,7 @@
                             ]
                         }
                     ]
+                }
 
             }
         },
