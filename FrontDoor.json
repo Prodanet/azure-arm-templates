@@ -42,6 +42,13 @@
                 "description": "The fully qualified domain name (FQDN) of the public IP resource in Azure."
             }
         },
+        "frontDoorPolicyName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the Front Door WAF policy to associate with the Front Door. Leave empty to not associate a WAF policy."
+            }
+        },
         "SharedKeyVaultResourceGroupName": {
             "type": "string",
             "defaultValue": "",
