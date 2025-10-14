@@ -82,13 +82,14 @@
         "customDomainNameBlob": "[replace(parameters('cdnCustomDomainName'), '.', '-')]", 
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
-        "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]"
+        "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
+        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]"
     },
     "resources": [
         {
             "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
             "apiVersion": "2025-03-01",
-            "name": "[parameters('frontDoorPolicyName')]",
+            "name": "[variables('frontDoorPolicyName')]",
             "location": "Global",
             "sku": {
                 "name": "Standard_AzureFrontDoor"
@@ -165,13 +166,13 @@
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', parameters('frontDoorPolicyName'))]",
+                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
                 "wafPolicy": {
-                    "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', parameters('frontDoorPolicyName'))]"
+                    "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]"
                 },
                 "type": "WebApplicationFirewall",
                 "associations": [
