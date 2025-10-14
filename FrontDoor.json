@@ -28,11 +28,18 @@
                 "description": "Custom domain name for the backend application. Leave empty if not using a custom domain."
             }
         },
-        "publicIPAddressName": {
+        "appHostNameLabel": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The name of the public IP resource in Azure."
+                "description": "The label for the DNS name of the public IP resource in Azure."
+            }
+        },
+        "appHostNameFQDN": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The fully qualified domain name (FQDN) of the public IP resource in Azure."
             }
         },
         "SharedKeyVaultResourceGroupName": {
@@ -184,17 +191,17 @@
             }
         },
         {
-            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), not(equals(parameters('publicIPAddressName'), '')))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
-            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.domainNameLabel)]",
+            "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', parameters('appHostNameLabel'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
-                "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName')), '2022-11-01').dnsSettings.fqdn]",
+                "hostName": "[parameters('appHostNameFQDN')]",
                 "httpPort": 80,
                 "httpsPort": 443,
                 "originHostHeader": "[variables('appCustomDomainName')]",
