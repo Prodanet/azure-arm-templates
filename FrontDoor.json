@@ -364,7 +364,7 @@
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
-                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupNameApp'), variables('endpointOriginNameApp'))]"
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupNameApp'), parameters('appHostNameLabel'))]"
             ],
             "properties": {
                 "customDomains": [
