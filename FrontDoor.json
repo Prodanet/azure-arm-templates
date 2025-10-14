@@ -391,9 +391,9 @@
                 "patternsToMatch": [
                     "/*"
                 ],
-                "forwardingProtocol": "HttpOnly",
+                "forwardingProtocol": "HttpsOnly",
                 "linkToDefaultDomain": "Enabled",
-                "httpsRedirect": "Disabled",
+                "httpsRedirect": "Enabled",
                 "enabledState": "Enabled"
             }
         }
