@@ -162,12 +162,14 @@
             }
         },
         {
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/securitypolicies",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]",
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
             ],
             "properties": {
@@ -180,6 +182,9 @@
                             "domains": [
                                 {
                                     "id": "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]"
+                                },
+                                {
+                                    "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]"
                                 }
                             ],
                             "patternsToMatch": [
