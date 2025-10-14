@@ -361,7 +361,7 @@
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '/', variables('routeNameApp'))]",
             "location": "Global",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', variables('frontDoorNameApp'), parameters('frontDoorName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]",
@@ -370,11 +370,11 @@
             "properties": {
                 "customDomains": [
                     {
-                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', variables('frontDoorNameApp'), variables('customDomainNameApp'))]"
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]"
                     }
                 ],
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('frontDoorNameApp'), variables('originGroupNameApp'))]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupNameApp'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [
