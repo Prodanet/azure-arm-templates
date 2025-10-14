@@ -383,7 +383,7 @@
                 "patternsToMatch": [
                     "/*"
                 ],
-                "forwardingProtocol": "MatchRequest",
+                "forwardingProtocol": "HttpOnly",
                 "linkToDefaultDomain": "Enabled",
                 "httpsRedirect": "Disabled",
                 "enabledState": "Enabled"
