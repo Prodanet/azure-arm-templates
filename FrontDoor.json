@@ -88,7 +88,7 @@
     },
     "resources": [
         {
-            "condition": "[not(equals(parameters('frontDoorPolicyName'), '')) and variables('createWafPolicy')]",
+            "condition": "[and (not(equals(parameters('frontDoorPolicyName'), '')), variables('createWafPolicy'))]",
             "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
             "apiVersion": "2025-03-01",
             "name": "[variables('frontDoorPolicyName')]",
@@ -164,7 +164,7 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('appCustomDomainName'), '')) and (variables('createWafPolicy'))]",
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), variables('createWafPolicy'))]",
             "type": "Microsoft.Cdn/profiles/securitypolicies",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
