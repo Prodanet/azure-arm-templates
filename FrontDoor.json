@@ -84,7 +84,7 @@
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
         "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
-        "createWAFPolicy": "[and (not(equals(parameters('frontDoorPolicyName'), '')), false)]"
+        "createWAFPolicy": "[and(not(equals(parameters('frontDoorPolicyName'), '')), false)]"
     },
     "resources": [
         {
