@@ -85,8 +85,7 @@
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
         "frontDoorPolicyNameVar": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
         "createWAFPolicyOriginal": "[not(equals(variables('frontDoorPolicyNameVar'), ''))]",
-        "createWAFPolicy": false,
-        "notUsedVariable": ""
+        "createWAFPolicy": false
     },
     "resources": [
         {
