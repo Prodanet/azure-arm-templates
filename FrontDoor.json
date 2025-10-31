@@ -83,15 +83,16 @@
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
-        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
-        "createWAFPolicy": "[and(not(equals(parameters('frontDoorPolicyName'), '')), false)]"
+        "frontDoorPolicyNameVar": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
+        "createWAFPolicy": "[and(not(equals(variables('frontDoorPolicyNameVar'), '')), false)]",
+        "notUsedVariable": ""
     },
     "resources": [
         {
             "condition": "[variables('createWAFPolicy')]",
             "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
             "apiVersion": "2025-03-01",
-            "name": "[variables('frontDoorPolicyName')]",
+            "name": "[variables('frontDoorPolicyNameVar')]",
             "location": "Global",
             "sku": {
                 "name": "Standard_AzureFrontDoor"
@@ -169,7 +170,7 @@
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]",
+                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyNameVar'))]",
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
@@ -177,7 +178,7 @@
             "properties": {
                 "parameters": {
                     "wafPolicy": {
-                        "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]"
+                        "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyNameVar'))]"
                     },
                     "type": "WebApplicationFirewall",
                     "associations": [
