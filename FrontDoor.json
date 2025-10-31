@@ -83,11 +83,12 @@
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
-        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]"
+        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
+        "createWafPolicy": false
     },
     "resources": [
         {
-            "condition": "[not(equals(parameters('frontDoorPolicyName'), ''))]",
+            "condition": "[not(equals(parameters('frontDoorPolicyName'), '')) and variables('createWafPolicy')]",
             "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
             "apiVersion": "2025-03-01",
             "name": "[variables('frontDoorPolicyName')]",
@@ -163,7 +164,7 @@
             }
         },
         {
-            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), '')) and (variables('createWafPolicy'))]",
             "type": "Microsoft.Cdn/profiles/securitypolicies",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
