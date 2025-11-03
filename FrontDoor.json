@@ -83,16 +83,14 @@
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
-        "frontDoorPolicyNameVar": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
-        "createWAFPolicyOriginal": "[not(equals(variables('frontDoorPolicyNameVar'), ''))]",
-        "createFrontDoor": false
+        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]"
     },
     "resources": [
         {
-            "condition": "[variables('createFrontDoor')]",
+            "condition": "[not(equals(parameters('frontDoorPolicyName'), ''))]",
             "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
             "apiVersion": "2025-03-01",
-            "name": "[variables('frontDoorPolicyNameVar')]",
+            "name": "[variables('frontDoorPolicyName')]",
             "location": "Global",
             "sku": {
                 "name": "Standard_AzureFrontDoor"
@@ -106,7 +104,6 @@
             }
         },
         {
-            "condition": "[variables('createFrontDoor')]",
             "type": "Microsoft.Cdn/profiles",
             "apiVersion": "2021-06-01",
             "name": "[parameters('frontDoorName')]",
@@ -120,7 +117,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
+            "condition": "[not(equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/secrets",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customCertificateName'))]",
@@ -142,7 +139,6 @@
             }
         },
         {
-            "condition": "[variables('createFrontDoor')]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'))]",
@@ -155,7 +151,6 @@
             }
         },
         {
-            "condition": "[variables('createFrontDoor')]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'))]",
@@ -168,12 +163,12 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/securitypolicies",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '-sp')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyNameVar'))]",
+                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]",
                 "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('frontDoorNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainNameApp'))]",
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
@@ -181,7 +176,7 @@
             "properties": {
                 "parameters": {
                     "wafPolicy": {
-                        "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyNameVar'))]"
+                        "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', variables('frontDoorPolicyName'))]"
                     },
                     "type": "WebApplicationFirewall",
                     "associations": [
@@ -204,7 +199,6 @@
             }
         },
         {
-            "condition": "[variables('createFrontDoor')]",
             "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameBlob'))]",
@@ -221,7 +215,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'))]",
@@ -239,7 +233,6 @@
             }
         },
         {
-            "condition": "[variables('createFrontDoor')]",
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameBlob'), '/', variables('endpointOriginNameBlob'))]",
@@ -260,7 +253,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('originGroupNameApp'), '/', parameters('appHostNameLabel'))]",
@@ -281,7 +274,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), equals(parameters('cdnCustomDomainName'), ''))]",
+            "condition": "[equals(parameters('cdnCustomDomainName'), '')]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeNameBlob'))]",
@@ -311,7 +304,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameBlob'))]",
@@ -332,7 +325,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
+            "condition": "[and(not(equals(parameters('cdnCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameBlob'))]",
@@ -349,7 +342,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), not(equals(parameters('SharedKeyVaultCertificateName'), '')))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameApp'))]",
@@ -370,7 +363,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
+            "condition": "[and(not(equals(parameters('appCustomDomainName'), '')), equals(parameters('SharedKeyVaultCertificateName'), ''))]",
             "type": "Microsoft.Cdn/profiles/customDomains",
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customDomainNameApp'))]",
@@ -387,7 +380,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('cdnCustomDomainName'), '')))]",
+            "condition": "[not(equals(parameters('cdnCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', parameters('frontDoorName'), '/', variables('routeNameBlob'))]",
@@ -423,7 +416,7 @@
             }
         },
         {
-            "condition": "[and(variables('createFrontDoor'), not(equals(parameters('appCustomDomainName'), '')))]",
+            "condition": "[not(equals(parameters('appCustomDomainName'), ''))]",
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
             "apiVersion": "2021-06-01",
             "name": "[concat(parameters('frontDoorName'), '/', variables('frontDoorNameApp'), '/', variables('routeNameApp'))]",
