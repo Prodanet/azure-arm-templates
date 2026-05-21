@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.2",
+    "contentVersion": "1.0.0.3",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -156,14 +156,14 @@
                 "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
             ],
             "properties": {
-                "friendlyName": "azdevsapdm",
+                "friendlyName": "[parameters('storageAccountName')]",
                 "dataSourceInfo": {
                     "resourceID": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
                     "resourceUri": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
                     "datasourceType": "Microsoft.Storage/storageAccounts/blobServices",
-                    "resourceName": "azdevsapdm",
+                    "resourceName": "[parameters('storageAccountName')]",
                     "resourceType": "Microsoft.Storage/storageAccounts",
-                    "resourceLocation": "northeurope",
+                    "resourceLocation": "[parameters('resourceGroupLocation')]",
                     "objectType": "Datasource"
                 },
                 "policyInfo": {
