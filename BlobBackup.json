@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.4",
+    "contentVersion": "1.0.0.5",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -60,8 +60,7 @@
                     "softDeleteSettings": {
                         "state": "AlwaysOn"
                     }
-                },
-                "replicatedRegions": []
+                }
             }
         },
         {
@@ -169,7 +168,13 @@
                     "policyId": "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]",
                     "policyParameters": {
                         "backupDatasourceParametersList": [
-                            {}
+                            {
+                                "objectType": "BlobBackupDatasourceParameters",
+                                "containersList": [
+                                    "pdm",
+                                    "pimcore"
+                                ]
+                            }
                         ]
                     }
                 },
