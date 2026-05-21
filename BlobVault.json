@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.9",
+    "contentVersion": "1.0.1.0",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -167,7 +167,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
                 "[resourceId('Microsoft.Authorization/roleAssignments', variables('roleAssignmentName'))]",
-                "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
+                "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'BlobDailyPolicy')]"
             ],
             "properties": {
                 "friendlyName": "[parameters('storageAccountName')]",
@@ -181,7 +181,7 @@
                     "objectType": "Datasource"
                 },
                 "policyInfo": {
-                    "policyId": "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]",
+                    "policyId": "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'BlobDailyPolicy')]",
                     "policyParameters": {
                         "backupDatasourceParametersList": [
                             {
