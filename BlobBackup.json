@@ -23,12 +23,6 @@
                 "description": "Number of daily recovery points to retain for blob storage vaulted backup. Set to 0 to disable blob backup entirely."
             }
         },
-        "resourceGroupName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the resource group where the storage account is located."
-            }
-        },
         "resourceGroupLocation": {
             "type": "string",
             "metadata": {
@@ -37,12 +31,13 @@
         }
     },
     "variables": {
-        "subscriptionId": "[subscription().subscriptionId]"
+        "subscriptionId": "[subscription().subscriptionId]",
+        "backupInstanceName": "[concat(parameters('storageAccountName'), '-', parameters('storageAccountName'), '-', guid(parameters('storageAccountName')))]"
     },
     "resources": [
         {
             "type": "Microsoft.DataProtection/backupVaults",
-            "apiVersion": "2023-05-01",
+            "apiVersion": "2026-03-01",
             "name": "[parameters('vaultName')]",
             "location": "[parameters('resourceGroupLocation')]",
             "identity": {
@@ -50,11 +45,131 @@
             },
             "properties": {
                 "storageSettings": [
-                {
-                    "datastoreType": "VaultStore",
-                    "type": "LocallyRedundant"
-                }
-                ]
+                    {
+                        "datastoreType": "VaultStore",
+                        "type": "LocallyRedundant"
+                    }
+                ],
+                "securitySettings": {
+                    "softDeleteSettings": {
+                        "state": "On",
+                        "retentionDurationInDays": 14
+                    }
+                },
+                "replicatedRegions": []
+            }
+        },
+        {
+            "type": "Microsoft.DataProtection/BackupVaults/backupPolicies",
+            "apiVersion": "2026-03-01",
+            "name": "[concat(parameters('vaultName'), '/DailyPolicy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DataProtection/BackupVaults', parameters('vaultName'))]"
+            ],
+            "properties": {
+                "policyRules": [
+                    {
+                        "lifecycles": [
+                            {
+                                "deleteAfter": {
+                                    "objectType": "AbsoluteDeleteOption",
+                                    "duration": "[concat('P', parameters('backupRetentionDays'), 'D')]"
+                                },
+                                "targetDataStoreCopySettings": [],
+                                "sourceDataStore": {
+                                    "dataStoreType": "OperationalStore",
+                                    "objectType": "DataStoreInfoBase"
+                                }
+                            }
+                        ],
+                        "isDefault": true,
+                        "name": "Default_OperationalStore",
+                        "objectType": "AzureRetentionRule"
+                    },
+                    {
+                        "lifecycles": [
+                            {
+                                "deleteAfter": {
+                                    "objectType": "AbsoluteDeleteOption",
+                                    "duration": "[concat('P', parameters('backupRetentionDays'), 'D')]"
+                                },
+                                "targetDataStoreCopySettings": [],
+                                "sourceDataStore": {
+                                    "dataStoreType": "VaultStore",
+                                    "objectType": "DataStoreInfoBase"
+                                }
+                            }
+                        ],
+                        "isDefault": true,
+                        "name": "Default",
+                        "objectType": "AzureRetentionRule"
+                    },
+                    {
+                        "backupParameters": {
+                            "backupType": "Discrete",
+                            "objectType": "AzureBackupParams"
+                        },
+                        "trigger": {
+                            "schedule": {
+                                "repeatingTimeIntervals": [
+                                    "R/2026-05-21T05:00:00+00:00/P1D"
+                                ],
+                                "timeZone": "Coordinated Universal Time"
+                            },
+                            "taggingCriteria": [
+                                {
+                                    "tagInfo": {
+                                        "tagName": "Default"
+                                    },
+                                    "taggingPriority": 99,
+                                    "isDefault": true
+                                }
+                            ],
+                            "objectType": "ScheduleBasedTriggerContext"
+                        },
+                        "dataStore": {
+                            "dataStoreType": "VaultStore",
+                            "objectType": "DataStoreInfoBase"
+                        },
+                        "name": "BackupDaily",
+                        "objectType": "AzureBackupRule"
+                    }
+                ],
+                "datasourceTypes": [
+                    "Microsoft.Storage/storageAccounts/blobServices"
+                ],
+                "objectType": "BackupPolicy"
+            }
+        },
+        {
+            "type": "Microsoft.DataProtection/backupVaults/backupInstances",
+            "apiVersion": "2026-03-01",
+            "name": "[concat(parameters('vaultName'), '/', variables('backupInstanceName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
+            ],
+            "properties": {
+                "friendlyName": "azdevsapdm",
+                "dataSourceInfo": {
+                    "resourceID": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                    "resourceUri": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                    "datasourceType": "Microsoft.Storage/storageAccounts/blobServices",
+                    "resourceName": "azdevsapdm",
+                    "resourceType": "Microsoft.Storage/storageAccounts",
+                    "resourceLocation": "northeurope",
+                    "objectType": "Datasource"
+                },
+                "policyInfo": {
+                    "policyId": "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]",
+                    "policyParameters": {
+                        "backupDatasourceParametersList": [
+                            {}
+                        ]
+                    }
+                },
+                "objectType": "BackupInstance"
             }
         }
     ],
