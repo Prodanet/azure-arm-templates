@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.6",
+    "contentVersion": "1.0.0.7",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -149,7 +149,7 @@
         {
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
-            "name": "[parameters('roleAssignmentName')]",
+            "name": "[variables('roleAssignmentName')]",
             "scope": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]"
@@ -166,7 +166,7 @@
             "name": "[concat(parameters('vaultName'), '/', variables('backupInstanceName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
-                "[resourceId('Microsoft.Authorization/roleAssignments', parameters('roleAssignmentName'))]",
+                "[resourceId('Microsoft.Authorization/roleAssignments', variables('roleAssignmentName'))]",
                 "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
             ],
             "properties": {
