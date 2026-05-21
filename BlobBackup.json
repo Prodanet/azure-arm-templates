@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Blob Backup Vault."
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the storage account."
+            }
+        },
+        "backupRetentionDays": {
+            "type": "int",
+            "defaultValue": 1,
+            "minValue": 0,
+            "maxValue": 360,
+            "metadata": {
+                "description": "Number of daily recovery points to retain for blob storage vaulted backup. Set to 0 to disable blob backup entirely."
+            }
+        },
+        "resourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group where the storage account is located."
+            }
+        },
+        "resourceGroupLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of the resource group where the storage account is located."
+            }
+        }
+    },
+    "variables": {
+        "subscriptionId": "[subscription().subscriptionId]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DataProtection/backupVaults",
+            "apiVersion": "2023-05-01",
+            "name": "[parameters('vaultName')]",
+            "location": "[parameters('resourceGroupLocation')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "storageSettings": [
+                {
+                    "datastoreType": "VaultStore",
+                    "type": "LocallyRedundant"
+                }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
