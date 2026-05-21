@@ -1,11 +1,17 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.0.0.1",
     "parameters": {
         "vaultName": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Blob Backup Vault."
+            }
+        },
+        "resourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group where the Blob Backup Vault and storage account will be created."
             }
         },
         "storageAccountName": {
@@ -147,14 +153,14 @@
             "name": "[concat(parameters('vaultName'), '/', variables('backupInstanceName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
                 "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
             ],
             "properties": {
                 "friendlyName": "azdevsapdm",
                 "dataSourceInfo": {
-                    "resourceID": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
-                    "resourceUri": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                    "resourceID": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                    "resourceUri": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
                     "datasourceType": "Microsoft.Storage/storageAccounts/blobServices",
                     "resourceName": "azdevsapdm",
                     "resourceType": "Microsoft.Storage/storageAccounts",
