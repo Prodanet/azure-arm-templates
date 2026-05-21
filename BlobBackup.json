@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.5",
+    "contentVersion": "1.0.0.6",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -38,7 +38,8 @@
     },
     "variables": {
         "subscriptionId": "[subscription().subscriptionId]",
-        "backupInstanceName": "[concat(parameters('storageAccountName'), '-', parameters('storageAccountName'), '-', guid(parameters('storageAccountName')))]"
+        "backupInstanceName": "[concat(parameters('storageAccountName'), '-', parameters('storageAccountName'), '-', guid(parameters('storageAccountName')))]",
+        "roleAssignmentName": "[guid(parameters('vaultName'), parameters('storageAccountName'), 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
     },
     "resources": [
         {
@@ -146,11 +147,26 @@
             }
         },
         {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[parameters('roleAssignmentName')]",
+            "scope": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[reference(resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName')), '2026-03-01', 'Full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
             "type": "Microsoft.DataProtection/backupVaults/backupInstances",
             "apiVersion": "2026-03-01",
             "name": "[concat(parameters('vaultName'), '/', variables('backupInstanceName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
+                "[resourceId('Microsoft.Authorization/roleAssignments', parameters('roleAssignmentName'))]",
                 "[resourceId('Microsoft.DataProtection/BackupVaults/backupPolicies', parameters('vaultName'), 'DailyPolicy')]"
             ],
             "properties": {
