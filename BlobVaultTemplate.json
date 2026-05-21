@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.1.0",
+    "contentVersion": "1.0.1.1",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -45,7 +45,7 @@
     "resources": [
         {
             "type": "Microsoft.DataProtection/backupVaults",
-            "apiVersion": "2026-03-01",
+            "apiVersion": "2024-04-01",
             "name": "[parameters('vaultName')]",
             "location": "[parameters('resourceGroupLocation')]",
             "identity": {
@@ -67,31 +67,13 @@
         },
         {
             "type": "Microsoft.DataProtection/BackupVaults/backupPolicies",
-            "apiVersion": "2026-03-01",
+            "apiVersion": "2024-04-01",
             "name": "[variables('blobBackupPolicyName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/BackupVaults', parameters('vaultName'))]"
             ],
             "properties": {
                 "policyRules": [
-                    {
-                        "lifecycles": [
-                            {
-                                "deleteAfter": {
-                                    "objectType": "AbsoluteDeleteOption",
-                                    "duration": "[concat('P', parameters('backupRetentionDays'), 'D')]"
-                                },
-                                "targetDataStoreCopySettings": [],
-                                "sourceDataStore": {
-                                    "dataStoreType": "OperationalStore",
-                                    "objectType": "DataStoreInfoBase"
-                                }
-                            }
-                        ],
-                        "isDefault": true,
-                        "name": "Default_OperationalStore",
-                        "objectType": "AzureRetentionRule"
-                    },
                     {
                         "lifecycles": [
                             {
@@ -118,7 +100,7 @@
                         "trigger": {
                             "schedule": {
                                 "repeatingTimeIntervals": [
-                                    "R/2026-05-21T05:00:00+00:00/P1D"
+                                    "R/2024-04-14T05:00:00+00:00/P1D"
                                 ],
                                 "timeZone": "Coordinated Universal Time"
                             },
@@ -156,13 +138,13 @@
             ],
             "properties": {
                 "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
-                "principalId": "[reference(resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName')), '2026-03-01', 'Full').identity.principalId]",
+                "principalId": "[reference(resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName')), '2024-04-01', 'Full').identity.principalId]",
                 "principalType": "ServicePrincipal"
             }
         },
         {
             "type": "Microsoft.DataProtection/backupVaults/backupInstances",
-            "apiVersion": "2026-03-01",
+            "apiVersion": "2024-04-01",
             "name": "[concat(parameters('vaultName'), '/', variables('backupInstanceName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]",
