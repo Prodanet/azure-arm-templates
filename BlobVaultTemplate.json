@@ -1,6 +1,6 @@
-{
+﻿{
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.1.2",
+    "contentVersion": "1.0.1.3",
     "parameters": {
         "vaultName": {
             "type": "string",
@@ -39,7 +39,7 @@
     "variables": {
         "subscriptionId": "[subscription().subscriptionId]",
         "backupInstanceName": "[concat(parameters('storageAccountName'), '-', parameters('storageAccountName'), '-', guid(parameters('storageAccountName')))]",
-        "roleAssignmentName": "[guid(parameters('vaultName'), parameters('storageAccountName'), 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+        "roleAssignmentName": "[guid(parameters('vaultName'), parameters('storageAccountName'), 'e5e2a7ff-d759-4cd2-bb51-3152d37e2eb1')]",
         "blobBackupPolicyName": "[concat(parameters('vaultName'), '/BlobDailyPolicy')]"
     },
     "resources": [
@@ -138,7 +138,7 @@
                 "[resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName'))]"
             ],
             "properties": {
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'e5e2a7ff-d759-4cd2-bb51-3152d37e2eb1')]",
                 "principalId": "[reference(resourceId('Microsoft.DataProtection/backupVaults', parameters('vaultName')), '2024-04-01', 'Full').identity.principalId]",
                 "principalType": "ServicePrincipal"
             }
@@ -184,3 +184,4 @@
     "outputs": {
     }
 }
+
