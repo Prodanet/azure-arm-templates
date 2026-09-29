@@ -83,7 +83,8 @@
         "customDomainNameApp": "[replace(parameters('appCustomDomainName'), '.', '-')]",
         "customCertificateName": "[if(not(equals(parameters('SharedKeyVaultCertificateName'), '')), concat(parameters('SharedKeyVaultName'), '-', parameters('SharedKeyVaultCertificateName'), '-latest'), '')]",
         "frontDoorNameApp": "[concat(parameters('frontDoorName'), '-app')]",
-        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]"
+        "frontDoorPolicyName": "[replace(parameters('frontDoorPolicyName'), '-', '')]",
+        "keyVaultAccessPolicyDeploymentName": "[concat(parameters('frontDoorName'), '-kv-access')]"
     },
     "resources": [
         {
@@ -105,15 +106,84 @@
         },
         {
             "type": "Microsoft.Cdn/profiles",
-            "apiVersion": "2021-06-01",
+            "apiVersion": "2025-04-15",
             "name": "[parameters('frontDoorName')]",
             "location": "Global",
             "sku": {
                 "name": "Standard_AzureFrontDoor"
             },
             "kind": "frontdoor",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "originResponseTimeoutSeconds": 30
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('SharedKeyVaultCertificateName'), ''))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[variables('keyVaultAccessPolicyDeploymentName')]",
+            "resourceGroup": "[parameters('SharedKeyVaultResourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('SharedKeyVaultName')]"
+                    },
+                    "principalId": {
+                        "value": "[reference(resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName')), '2025-04-15', 'Full').identity.principalId]"
+                    },
+                    "tenantId": {
+                        "value": "[subscription().tenantId]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "keyVaultName": {
+                            "type": "string"
+                        },
+                        "principalId": {
+                            "type": "string"
+                        },
+                        "tenantId": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "apiVersion": "2023-07-01",
+                            "name": "[concat(parameters('keyVaultName'), '/add')]",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "tenantId": "[parameters('tenantId')]",
+                                        "objectId": "[parameters('principalId')]",
+                                        "permissions": {
+                                            "secrets": [
+                                                "get",
+                                                "list"
+                                            ],
+                                            "certificates": [
+                                                "get"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
             }
         },
         {
@@ -122,7 +192,8 @@
             "apiVersion": "2025-04-15",
             "name": "[concat(parameters('frontDoorName'), '/', variables('customCertificateName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]",
+                "[variables('keyVaultAccessPolicyDeploymentName')]"
             ],
             "properties": {
                 "parameters": {
